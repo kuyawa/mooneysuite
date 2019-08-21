@@ -26,21 +26,28 @@ Starting with address creation we provide vanity generators to help you choose w
 ### Screenshots
 
 - Desktop wallet
+
 ![Desktop Wallet](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/desktop.jpg)
 
 - Desktop exchange
+
 ![Desktop exchange](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/exchange.jpg)
 
 - Mobile wallet
+
 ![Mobile wallet](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/mobile.jpg)
 
 - Watch app
+
 ![Watch app](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/watch.jpg)
 
 - Browser wallet
+
 ![Browser wallet](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/webext.jpg)
 
 - Tools
-![Tools](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/tools.jpg)
+
+![Tools](https://raw.githubusercontent.com/kuyawa/mooneysuite/master/Screenshots/vanity.jpg)
+
 
 ### ©2019 Mooney Suite

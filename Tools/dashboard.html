@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mooney Dashboard</title>
+<style>
+
+html, body { margin: 0; padding: 0; font: normal 1em/1.4 sans-serif; color: #111; background-color: #FAFAFA; }
+wrap { display: block; width: 1150px; margin: 0 auto; }
+li   { list-style-type: none; }
+
+header h3 { margin: 20px 0 4px; font-weight: 100; text-align: left; }
+
+#topbar { overflow: hidden; margin: 0px; border-bottom: 1px solid #369; background-color: #DDD; }
+.panel  { display: inline-block; float: left; width: 120px; padding: 20px;  }
+.label-title { display: block; text-align: right; font-size: 0.7em; }
+.label-value { display: block; text-align: right; font-size: 1.2em; }
+.label-close { margin-right: 20px; }
+
+#midbar  { position: relative; padding-top: 10px; }
+#pulsar  { position: absolute; top: -42px; left: -20px; }
+#lftpane { display:inline-block; width: 260px; }
+#midpane { display:inline-block; width: 598px; margin: 0 10px; }
+#rgtpane { display:inline-block; width: 260px; }
+.tinychart { display: block; width: 260px; height: 100px; margin: 8px auto; }
+.bigtable  { display: block; width: 590px; height: 424px; margin: 0px auto; }
+
+#ledgers { width: 582px; margin: 10px 4px; font-size: 0.7em; }
+#ledgers th { padding: 8px 0; border-bottom: 1px solid #369; font-weight: 100; text-align: right; }
+#ledgers td { text-align: right; }
+
+#botbar  { position: relative; overflow: hidden; margin-top: 10px; border-top: 1px solid #369; background-color: #DDD; }
+#botbar .panel  { width: 140px; }
+#botbar .panel.short  { width: 60px; }
+#freezer { float: left; padding: 20px 10px; }
+#stopper { width: 30px; height: 30px; margin: 4px; background-color: #369; color: #DDD; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; }
+#zoomer  { float: right; padding: 20px 10px; }
+#zoomer button  { display: block; width: 30px; height: 30px; margin: 4px; border: none; border-radius: 20px; background-color: #369; color: #DDD; cursor: pointer; font-size: 1.3em; }
+
+.action { width: 40px; height: 20px; border: none; border-radius: 3px; background-color: #333; color: #CCC; cursor: pointer; }
+.action:hover     { background-color: #47A; color: #FFF; }
+.action[selected] { background-color: #369; color: #EEE; }
+
+.go-up { color: #4A2; }
+.go-dn { color: #B44; }
+.go-no { color: #FFF; }
+
+.go-up:before { content: "\25B2"; color: #4A2; display: inline-block; width: 16px; margin-right: 4px; font-size: 0.8em; }
+.go-dn:before { content: "\25BC"; color: #B44; display: inline-block; width: 16px; margin-right: 4px; font-size: 0.8em; }
+.go-no:before { content: "\25BA"; color: #FFF; display: inline-block; width: 16px; margin-right: 4px; font-size: 0.8em; }
+
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  html, body { color: #E0E6EA; background-color: #1C2024; }
+  #topbar { border-bottom: 1px solid #369; background-color: #111; }
+  #botbar { border-top: 1px solid #369; background-color: #111; }
+  .label-value { color: #FFF; }
+  .tinychart { background-color: #111; }
+  .bigtable  { background-color: #111; }
+  svg text { fill: #A8B3CE; }
+}
+
+</style>
+</head>
+<body>
+<wrap>
+
+<header><h3><b>Mooney</b> Dashboard</h3></header>
+
+<div id="topbar">
+	<div class="panel"><label class="label-title">Protocol Version</label><label class="label-value" id="version">0</label></div>
+	<div class="panel"><label class="label-title">Base Fee        </label><label class="label-value" id="basefee">0</label></div>
+	<div class="panel"><label class="label-title">Base Reserve    </label><label class="label-value" id="reserve">0</label></div>
+	<div class="panel"><label class="label-title">Total Coins     </label><label class="label-value" id="coins">0</label></div>
+	<div class="panel"><label class="label-title">Fee Pool        </label><label class="label-value" id="pool">0</label></div>
+	<div class="panel"><label class="label-title">Max Transactions</label><label class="label-value" id="maxtx">0</label></div>
+	<div class="panel"><label class="label-title">Ledger Sequence </label><label class="label-value" id="seq">0</label></div>
+</div>
+
+<div id="midbar">
+    <div id="pulsar" class="pulse"></div>
+    <div id="lftpane">
+        <div id="chart1" class="tinychart"></div>
+        <div id="chart2" class="tinychart"></div>
+        <div id="chart3" class="tinychart"></div>
+        <div id="chart4" class="tinychart"></div>
+    </div>
+    <div id="midpane">
+        <div class="bigtable">
+            <table id="ledgers">
+                <thead>
+                    <tr>
+                        <th>Ledger Id</th>
+                        <th>Txs</th>
+                        <th>Ops</th>
+                        <th>Volume</th>
+                        <th>Accounts</th>
+                        <th>Payments</th>
+                        <th>Offers</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="rgtpane">
+        <div id="chart5" class="tinychart"></div>
+        <div id="chart6" class="tinychart"></div>
+        <div id="chart7" class="tinychart"></div>
+        <div id="chart8" class="tinychart"></div>
+    </div>
+</div>
+
+<div id="botbar">
+    <div id="freezer"><button id="stopper" onclick="onStop()">||</button></div>
+    <div id="zoomer"><button id="zoom0" onclick="onZoom(0)">&#x2B0C;</button></div>
+    <div class="panel"><label class="label-title">Volume </label><label class="label-value" id="volume">0</label></div>
+    <div class="panel"><label class="label-title">Open   </label><label class="label-value" id="price-open">0</label></div>
+    <div class="panel"><label class="label-title">Low    </label><label class="label-value" id="price-low">0</label></div>
+    <div class="panel"><label class="label-title">High   </label><label class="label-value" id="price-high">0</label></div>
+    <div class="panel"><label class="label-title">Close  </label><label class="label-value" id="price-close">0</label></div>
+    <div class="panel short"><button id="quote-usd" class="action" onclick="select('usd')" selected>USD</button><button id="quote-btc" class="action" onclick="select('btc')">BTC</button></div>
+</div>
+
+</wrap>
+
+<script>
+
+/*---- SVG LIBRARY
+
+Use: var svg = SVG("mydiv");
+     svg.circle(100,100,50,'red','black');
+     svg.rect(200,100,80,120,'blue','green');
+     svg.line(300,100,350,100,'black');
+
+
+SVG REFERENCE
+
+rect     (x,y,width,height,radius,fill,stroke)
+circle   (x,y,r,fill,stroke)
+ellipse  (x,y,width,height,angle,fill,stroke)
+triangle (x1,y1,x2,y2,x3,y3,fill,stroke)
+shape    ([path],fill,stroke)
+translate(x,y)
+rotate   (angle)
+scale    (w,h,element)
+image    (src,x,y,width,height,stroke)
+text     (x,y,string,font,style)
+
+-----------------------------------*/
+
+function SVG(parentid, id='BarChartSvg') {
+  this.NS          = "http://www.w3.org/2000/svg";
+  this.xlinkNS     = "http://www.w3.org/1999/xlink";
+  this.version     = "1.1";
+  this.container   = null;
+  this.canvas      = null;
+  this.chart       = null;
+  this.elements    = [];
+  this.width       = 600;
+  this.height      = 300;
+  this.padding     =  20;
+  this.color       = "black";
+  this.backcolor   = "white";
+  this.bordercolor = "black";
+  this.fillstyle   = "grey";
+  this.strokestyle = "black";
+  this.strokewidth = "1px";
+  this.font        = "normal 1em Arial";
+  this.applyfillstyle   = false;
+  this.applystrokestyle = false;
+  this.applystrokewidth = false;
+  this.rotateStack = [];
+  this.temp    = {
+    fill   : null,
+    stroke : null,
+    end    : null
+  };
+  this.colors  = {
+    red:       "red",
+    green:     "green",
+    blue:      "blue",
+    grey:      "grey",
+    lightgrey: "lightgrey",
+    white:     "white",
+    black:     "black"
+  };
+  
+  this.container = document.getElementById(parentid);
+  this.width  = this.container.clientWidth;
+  this.height = this.container.clientHeight;
+  if(this.container.childNodes.length>0) { this.container.removeChild(this.container.childNodes[0]); }
+  this.canvas = document.createElementNS(this.NS,"svg");
+  this.canvas.setAttribute("id",id);
+  this.container.appendChild(this.canvas);
+  this.size(this.width, this.height);
+}
+
+SVG.prototype.init = function(id){}
+SVG.prototype.strokeWidth = function(width){
+  if(!width){
+    this.strokewidth="1px";
+    this.applystrokewidth=false;
+  } else {
+    this.strokewidth=width;
+    this.applystrokewidth=true;
+  }
+}
+
+SVG.prototype.size = function(width, height){
+    var aw = width  - this.padding*2;
+    var ah = height - this.padding*2;
+    this.width  = width;
+    this.height = height;
+    this.chart  = {width: aw, height: ah};
+    this.canvas.setAttribute('width',width); 
+    this.canvas.setAttribute('height',height);
+}
+
+SVG.prototype.resize = function(){
+    this.width  = this.container.clientWidth;
+    this.height = this.container.clientHeight;
+    if(this.container.childNodes.length>0) { this.container.removeChild(this.container.childNodes[0]); }
+    this.canvas = document.createElementNS(this.NS,"svg");
+    this.canvas.setAttribute("id",id);
+    this.container.appendChild(this.canvas);
+    this.size(this.width, this.height);
+}
+
+SVG.prototype.background = function(color){
+  this.backcolor = color;  // save for future use
+  this.canvas.style.background = color;
+}
+
+SVG.prototype.border = function(color,radius){ /* "1px color" or {width:"1px",color:"black"} */
+  this.bordercolor = color;  // save for future use
+  this.canvas.style.border = "1px solid "+color;
+  if(radius){ 
+    this.canvas.style.BorderRadius = radius; 
+  }
+}
+
+SVG.prototype.clear = function(){ // remove all elements from svg object
+  while(this.canvas.childNodes.length>0) this.canvas.removeChild(this.canvas.firstChild); 
+}
+
+SVG.prototype.lineTo = function(x1,y1,x2,y2,stroke,strokewidth,pattern){
+  var o = document.createElementNS(this.NS,"line");
+  o.setAttribute("x1",x1);
+  o.setAttribute("y1",y1);
+  o.setAttribute("x2",x2);
+  o.setAttribute("y2",y2);
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  if(pattern) o.setAttribute("stroke-dasharray",pattern);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.polyline = function(points,width,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"polyline");
+  o.setAttribute("points",points);
+  o.setAttribute("fill","none");
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(!width) width = svg.strokewidth;
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.triangle = function(x1,y1,x2,y2,x3,y3,fill,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"polyline");
+  o.setAttribute("points",[x1,y1,x2,y2,x3,y3,x1,y1].toString());
+  if(fill) o.setAttribute("fill",fill);
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.rect = function(x,y,width,height,radius,fill,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"rect");
+  o.setAttribute("x", x);
+  o.setAttribute("y", y);
+  o.setAttribute("width",  width);
+  o.setAttribute("height", height);
+  if(radius){ o.setAttribute("rx",radius); o.setAttribute("ry",radius); }
+  if(fill) o.setAttribute("fill",fill);
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.circle = function(x,y,radius,fill,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"circle");
+  o.setAttribute("cx", x);
+  o.setAttribute("cy", y);
+  o.setAttribute( "r", radius);
+  if(fill) o.setAttribute("fill",fill);
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.ellipse = function(x,y,width,height,angle,fill,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"ellipse");
+  o.setAttribute("cx", x);
+  o.setAttribute("cy", y);
+  o.setAttribute("rx", width);
+  o.setAttribute("ry", height);
+  if(angle)  o.setAttribute("transform","rotate("+angle+","+x+","+y+")");
+  if(fill)   o.setAttribute("fill",fill);
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.path = function(path,fill,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"path");
+  o.setAttribute("d",path);
+  if(fill) o.setAttribute("fill",fill);
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.shape = SVG.prototype.path;
+
+SVG.prototype.translate = function(x,y,element){
+  element.setAttribute("transform","translate("+x+","+y+")");  
+}
+
+SVG.prototype.rotate = function(element,angle,x,y){
+  var r,t;
+  t = element.getAttribute("transform"); // TODO: check transform already set, add new transform
+  if(x&&y){ r = "rotate("+angle+","+x+","+y+")"; }
+     else { r = "rotate("+angle+")"; }
+  if(t) t += " " + r;
+  else t = r;
+  element.setAttribute("transform",t);
+}
+
+SVG.prototype.scale = function(hor,ver,element){
+  if(!element) element=this.canvas;
+  element.setAttribute("transform","scale("+hor+","+ver+")");
+}
+
+SVG.prototype.group = function(x,y,id,parent){
+  var o = document.createElementNS(this.NS,"g");
+  if(id) o.setAttribute("id",id);
+  o.setAttribute("transform","translate("+x+","+y+")");
+  if(parent) parent.appendChild(o);
+  else this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.image = function (src,x,y,width,height,stroke,strokewidth){
+  var o = document.createElementNS(this.NS,"image");
+  o.setAttribute("x",x);
+  o.setAttribute("y",y);
+  o.setAttribute("width",width);
+  o.setAttribute("height",height);
+  o.setAttribute("preserveAspectRatio","none");
+  if(stroke) o.setAttribute("stroke",stroke);
+  o.setAttributeNS(this.xlinkNS,"href",src);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.text = function(txt,x,y,fill,align,style){
+  var o = document.createElementNS(this.NS,"text");
+  o.setAttribute("x", x);
+  o.setAttribute("y", y);
+  //if(fill)  o.setAttribute("fill",fill);
+  if(align) o.setAttribute("text-anchor",align);
+  //if(style) o.style.font = style;
+  if(style) o.setAttribute("style",style);
+  o.textContent = txt;
+  //o.appendChild(document.createTextNode(txt));
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.strokewidth = function(sw){
+  if(!sw){ this.applystrokewidth=false; this.strokewidth="1px";} 
+  else{    this.applystrokewidth=true; this.strokewidth=sw;}
+  //this.canvas.setAttribute(s);
+}
+
+SVG.prototype.defs = function(){
+  var o = document.createElementNS(this.NS,"defs");
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+SVG.prototype.filter = function(parent,id,res,x,y,dev,dx,dy){
+  var f = document.createElementNS(this.NS,"filter");
+  var g = document.createElementNS(this.NS,"feGaussianBlur");
+  var o = document.createElementNS(this.NS,"feOffset");
+  f.setAttribute("id",id);
+  f.setAttribute("filterRes",res);
+  f.setAttribute("x", x);
+  f.setAttribute("y", y);
+  g.setAttribute("stdDeviation",dev);
+  o.setAttribute("dx",dx);
+  o.setAttribute("dy",dy);
+  f.appendChild(g);
+  f.appendChild(o);
+  parent.appendChild(f);
+  this.elements.push(f);
+  return f;
+}
+
+SVG.prototype.shadow = function(parent,id,dx,dy){
+  var f  = document.createElementNS(this.NS,"filter");
+  var g  = document.createElementNS(this.NS,"feGaussianBlur");
+  var o  = document.createElementNS(this.NS,"feOffset");
+  var m  = document.createElementNS(this.NS,"feMerge");
+  var n1 = document.createElementNS(this.NS,"feMergeNode");
+  var n2 = document.createElementNS(this.NS,"feMergeNode");
+  f.setAttribute("id",id);
+  g.setAttribute("in","SourceAlpha");
+  g.setAttribute("stdDeviation","1");
+  g.setAttribute("result","myblur");
+  o.setAttribute("in","myblur");
+  o.setAttribute("dx",dx);
+  o.setAttribute("dy",dy);
+  o.setAttribute("result","finalblur");
+  n1.setAttribute("in","finalblur");
+  n2.setAttribute("in","SourceGraphic");
+
+  m.appendChild(n1);
+  m.appendChild(n2);
+  f.appendChild(g);
+  f.appendChild(o);
+  f.appendChild(m);
+  parent.appendChild(f);
+  this.elements.push(f);
+  return f;
+}
+
+
+SVG.prototype.chartLine = function(points, stroke, strokewidth) {
+  var list = [];
+  for(var i in points) {
+    list.push(points[i].x);
+    list.push(points[i].y);
+  }
+  var o = document.createElementNS(this.NS,"polyline");
+  o.setAttribute("points",list.toString());
+  //if(fill) o.setAttribute("fill",fill);
+  o.setAttribute("fill",'transparent');
+  if(stroke) o.setAttribute("stroke",stroke);
+  if(strokewidth) o.setAttribute("stroke-width",strokewidth);
+  this.canvas.appendChild(o);
+  this.elements.push(o);
+  return o;
+}
+
+</script>
+
+<script>
+
+/*
+ svgPulse({
+    id:     'button',
+    parent: 'area',
+    width:   100,
+    height:  100,
+    color:  '#C00',
+    time:    1.5,
+    text:   '123'
+ });
+*/
+
+function svgPulse(options) {
+    var NS  = "http://www.w3.org/2000/svg";
+
+    function circle(x, y, radius, fill, stroke, strokewidth){
+        var o = document.createElementNS(NS, "circle");
+        o.setAttribute("cx", x);
+        o.setAttribute("cy", y);
+        o.setAttribute( "r", radius);
+        if(fill) o.setAttribute("fill", fill);
+        if(stroke) o.setAttribute("stroke", stroke);
+        if(strokewidth) o.setAttribute("stroke-width", strokewidth);
+        return o;
+    }
+
+    function text(content, x, y, fill, align, style){
+        var o = document.createElementNS(NS, "text");
+        o.setAttribute("x", x);
+        o.setAttribute("y", y);
+        if(fill)  o.setAttribute("fill", fill);
+        if(align) o.setAttribute("text-anchor", align);
+        if(style) o.setAttribute("style", style);
+        o.textContent = content;
+        return o;
+    }
+
+    function animate(type, name, begin, time, repeat, from, to) {
+        var o = document.createElementNS(NS, "animate");
+        o.setAttribute("attributeType", type);
+        o.setAttribute("attributeName", name);
+        o.setAttribute("begin", begin);
+        o.setAttribute("dur", time);
+        o.setAttribute("repeatCount", repeat);
+        o.setAttribute("from", from);
+        o.setAttribute("to", to);
+        return o;
+    }
+
+    var time  = options.time  ? options.time+'s' : '1.5s';
+    var color = options.color ? options.color    : '#C00';
+
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute('id', options.id); 
+    svg.setAttribute('class', 'svg-pulse'); 
+    svg.setAttribute('expanded', 'true'); 
+    svg.setAttribute('width', options.width+'px'); 
+    svg.setAttribute('height', options.height+'px'); 
+    var inner = circle('50%', '50%', '25%', color);
+    var outer = circle('50%', '50%', '25%', color);
+    inner.setAttribute('class', 'svg-pulse-inner');
+    outer.setAttribute('class', 'svg-pulse-outer');
+    outer.appendChild(animate('SVG', 'r', '0s', time, '1', '25%', '45%'));
+    outer.appendChild(animate('CSS', 'opacity', '0s', time, '1', '1', '0'));
+    svg.appendChild(inner);
+    svg.appendChild(outer);
+    if(options.text!=null){
+        var label = text(options.text, '50%', '56%', '#FFF', 'middle', 'normal 1em sans-serif');
+        svg.appendChild(label);
+    }
+
+    var parent = document.getElementById(options.parent);
+    while(parent.childNodes.length>0){ parent.removeChild(parent.firstChild); }
+    parent.appendChild(svg);
+
+    // <text x="50%" y="56%" text-anchor="middle" fill="#FFF">2.5</text>
+}
+
+</script>
+
+<script>
+
+/* TinyChart 1.0
+
+data = {
+    labels:['A', 'B', ...]
+    series:[[nA,nB],...]
+}
+
+*/
+
+var TinyChart = function(canvasId) { 
+    this.data    = [];
+    this.value   = null;
+    this.width   = 300;
+    this.height  = 130;
+    this.padding = 20;
+    this.ticks   = 30;
+    this.font    = "normal 1em Arial"; 
+    this.canvas  = new SVG(canvasId);
+
+    this.colors  = {
+        background : '#111',
+        foreground : '#FFF',
+        labels     : '#111', //A8B3CE
+        border     : '#000',
+        dashed     : '#394951',
+        bar0       : '#369',     // 369
+        bar1       : '#399',     // 
+        bar2       : '#6E914F',  // green
+        bar3       : '#B54F5B',  // red
+        bar4       : '#FF7043',  // orange
+        bar5       : '#FDD835',  // yellow
+        bar6       : '#AB47BC',  // purple
+        bar7       : '#F06292',  // pink
+        bar8       : '#26A69A',  // teal
+        bar9       : '#29B6F6',  // cyan
+        warning    : '#B54F5B'
+    };
+
+    this.fonts = {
+        caption : 'font: normal 0.8em Arial',
+        axis    : 'font: normal 0.6em Arial',
+        labels  : 'font: normal 0.7em Arial',
+        time    : 'font: normal 0.6em Arial'
+    };
+
+    this.patterns = {
+        dashed: [2,4],
+        dotted: [2,2]
+    };
+
+};
+
+TinyChart.prototype.resize = function() {
+    this.canvas.resize();
+    this.draw(this.data);
+}
+
+TinyChart.prototype.draw = function(data) {
+    this.data = data;
+    this.canvas.clear();
+    //this.canvas.background(this.colors.background);
+    //this.canvas.border(this.colors.border);
+    this.drawAxis();
+    if(!data || data.length<2){ this.drawNoData(); return; }
+    this.drawLabels();
+    this.drawChart();
+}
+
+TinyChart.prototype.drawNoData = function() {
+    var x,y,go=this.canvas; 
+    x = go.width/2;
+    y = go.height/2;
+    go.text('No data available', x, y, this.colors.warning, 'middle');
+}
+
+TinyChart.prototype.drawAxis = function() {
+    var x0,y0,x1,y1,w,h,volW,volH,barW,barH,tick,go=this.canvas; 
+    chtW = go.chart.width;
+    chtH = go.chart.height;
+
+    // X Axis
+    x0 = this.padding;
+    y0 = this.padding + chtH;
+    x1 = this.canvas.width  - this.padding;
+    y1 = this.padding + chtH;
+    go.lineTo(x0,y0,x1,y1,this.colors.dashed);
+
+    // Y Axis
+    x1 = this.padding;
+    y1 = this.padding;
+    go.lineTo(x0,y0,x1,y1,this.colors.dashed);
+
+    // X Ticks 10
+    tick = chtW / 10;
+    x0 = this.padding;
+    y0 = this.padding + chtH + 6;
+    x1 = x0;
+    y1 = this.padding + chtH;
+    for (var i = 0; i < 11; i++) {
+        x0 += tick;
+        go.lineTo(x0,y0,x0,y1,this.colors.dashed);  
+    }
+
+    // Y Ticks 3
+    tick = chtH / 4;
+    x0 = this.padding - 6;
+    y0 = this.padding + chtH;
+    x1 = this.padding;
+    y1 = y0;
+    for (var i = 0; i < 3; i++) {
+        y0 -= tick;
+        go.lineTo(x0,y0,x1,y0,this.colors.dashed);  
+    }
+
+    // X Dotted 3
+    tick = chtH / 4;
+    x0 = this.padding;
+    y0 = this.padding + chtH;
+    x1 = this.canvas.width  - this.padding;
+    y1 = y0;
+    for (var i = 0; i < 3; i++) {
+        y0 -= tick;
+        go.lineTo(x0,y0,x1,y0,this.colors.dashed,1,this.patterns.dashed);
+    }
+}
+
+TinyChart.prototype.getLabels = function(data=null) {
+    function getMinute(time) {
+        var date = new Date(time);
+        var hh   = date.getHours();
+        var mm   = date.getMinutes();
+        if(mm<10){ mm = '0'+mm; }
+        var am   = (hh < 12 ? 'am' : 'pm')
+        var hour = (hh==0 ? 12 : (hh > 12 ? hh-12 : hh)) + ':' + mm + ' ' + am;
+        return hour;
+    }
+
+    function getHour(time) {
+        var date = new Date(time);
+        var hh   = date.getHours();
+        var am   = (hh < 12 ? 'am' : 'pm')
+        var hour = (hh==0 ? 12 : (hh > 12 ? hh-12 : hh)) + ' ' + am;
+        return hour;
+    }
+
+    function getDay(time) {
+        var names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dic'];
+        var date  = new Date(time);
+        var mm    = date.getMonth()
+        var mo    = names[mm].substr(0,1);
+        var day   = date.getDate() + ' ' + names[mm];
+        return day;
+    }
+
+    function getMonth(time) {
+        var names = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DIC'];
+        var date  = new Date(time);
+        var mm    = date.getMonth();
+        return names[mm];
+    }
+
+    if(!data) { data = this.data; }
+    var tick = parseInt(this.ticks / 12);
+    var labels = [];
+    var diff = data[data.length-1].time - data[0].time;
+    // 04h diff   14,100000
+    // 24h diff   84,600000
+    // 07d diff  676,800000
+    // 30d diff 4060,800000
+    var getLabel = getHour;
+    if     (diff <    50000000) { getLabel = getMinute; }
+    else if(diff <   200000000) { getLabel = getHour; }
+    else if(diff < 20000000000) { getLabel = getDay; }
+    else { getLabel = getMonth; }
+
+    for (var i = 0; i < data.length; i++) {
+        if(i%tick){ continue; }
+        var time = data[i].time;
+        var label = getLabel(time);
+        labels.push(label);
+    }
+
+    if(labels.length < 12) { 
+        for (var i = labels.length; i < 12; i++) { labels.push(''); }
+    }
+
+    return labels;
+}
+
+TinyChart.prototype.drawLabels = function() {
+    var x,y,x0,y0,x1,y1,min,max,decs,tick,go=this.canvas;
+    var ini  = this.data.length > this.ticks ? this.data.length - this.ticks : 0;
+    var data = this.data.slice(ini);
+    x0   = this.padding + 4;
+    y0   = this.padding + 4;
+    x1   = this.padding + 4;
+    y1   = this.padding + this.canvas.chart.height - 4;
+    x2   = this.canvas.width / 2;
+    y2   = 16;
+    x3   = this.canvas.width  - this.padding - 8;
+    y3   = this.canvas.height - this.padding/3;
+    min  = this.getMinVal();
+    max  = this.getMaxVal();
+    //decs = (min<1 ? 8 : (min>100 ? 0 : 4));
+    decs = 0;
+
+    // Min and max price
+    go.text(max.toFixed(decs), x0, y0, this.colors.labels, 'left', this.fonts.axis);
+    //go.text(min.toFixed(decs),x1,y1,this.colors.labels,'left',this.fonts.axis);
+
+    //Caption
+    if(this.caption!=null){
+        go.text(this.caption, x2, y2, this.colors.labels, 'middle', this.fonts.caption);
+    }
+
+    // Last Value
+    if(this.value!=null){
+        go.text(this.value, x3, y3, this.colors.labels, 'end', this.fonts.caption);
+    }
+
+    
+    // Draw X time labels
+    /*
+    var labels = this.getLabels(data);
+    x = this.padding;
+    y = this.padding*1.75 + chtH;
+    tick = chtW / 12; // TODO: set as option?
+    for (var i = 0; i < 11; i++) {
+        x += tick;
+        var label = labels[i];
+        go.text(label,x,y,this.colors.labels,'middle',this.fonts.time);
+    }
+    */
+}
+
+TinyChart.prototype.drawChart = function() {
+    var x,y,w,h,barH,go=this.canvas; 
+    var ini    = this.data.length > this.ticks ? this.data.length - this.ticks : 0;
+    var data   = this.data.slice(ini);
+    var minVal = 0; //this.getMinVal(data);
+    var maxVal = this.getMaxVal(data);
+    var valW   = go.chart.width;
+    var valH   = go.chart.height  * 0.90; // buffer at the top
+    var base   = go.height - this.padding - 1;
+    var tick   = (go.width - this.padding*2) / this.ticks;
+    var prev   = 0;
+
+    w = valW / this.ticks - 2;
+    x = this.padding + w;
+    var multi = data[0].constructor.name == 'Array';
+
+    if(multi){
+        var nseries = data[0].length;
+        var wx = w / nseries - 1;
+        for (var i = 0; i < data.length; i++) {
+            for (var j = 0; j < data[i].length; j++) {
+                var item = data[i][j];
+                barH = maxVal==0 ? 0 : (item - minVal) * valH / maxVal;
+                h =  barH;
+                y =  base-h;
+                color = this.colors['bar'+j];
+                go.rect(x,y,wx,h,0,color,color);
+                x += wx+2;
+            }
+            //x += 2;
+        }
+    } else {
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            barH = maxVal==0 ? 0 : (item - minVal) * valH / maxVal;
+            h =  barH;
+            y =  base-h;
+            color = this.colors['bar0'];
+            go.rect(x,y,w,h,0,color,color);
+            x += tick;
+        }        
+    }
+}
+
+TinyChart.prototype.drawBubble = function() {
+    var x,y,w,h,barH,go=this.canvas; 
+    x = this.width - this.padding / 2;
+    y = this.padding / 2;
+    go.text(this.bubble, x, y, this.colors.labels, 'middle', this.fonts.caption);
+}
+
+TinyChart.prototype.getMinVal = function(data=null) {
+    if(!data) { data = this.data; }
+    var minVal = 999999999999;
+    var multi = data[0].constructor.name == 'Array';
+    if(multi){
+        for (var i = 0; i < data.length; i++) {
+            for (var j = 0; j < data[i].length; j++) {
+                var val = data[i][j];
+                if(val < minVal) { minVal = val; }
+            }
+        }
+    } else {
+        for (var i = 0; i < data.length; i++) {
+            var val = data[i];
+            if(val < minVal) { minVal = val; }
+        }        
+    }
+    return minVal;
+}
+
+TinyChart.prototype.getMaxVal = function(data=null) {
+    if(!data) { data = this.data; }
+    var maxVal = 0;
+    var multi = data[0].constructor.name == 'Array';
+    if(multi){
+        for (var i = 0; i < data.length; i++) {
+            for (var j = 0; j < data[i].length; j++) {
+                var val = data[i][j];
+                if(val > maxVal) { maxVal = val; }
+            }
+        }
+    } else {
+        for (var i = 0; i < data.length; i++) {
+            var val = data[i];
+            if(val > maxVal) { maxVal = val; }
+        }        
+    }
+    return maxVal;
+}
+
+</script>
+
+<script src="stellar.js"></script>
+
+<script>
+
+var isDark    = window.matchMedia("(prefers-color-scheme: dark)").matches;
+var network   = 'live';   // test
+var server    = null;
+var timer     = null;
+var lapse     = now();
+var channel   = null;     // stellar
+var socket    = null;     // binance
+var isRunning = true;
+var isFrozen  = false;
+var isZoomed  = false;
+var market    = 'xlmusd'; // xlmbtc
+var btcusd    = 0;
+var ticker    = {
+    old    : 1,
+    open   : 0,
+    low    : 0,
+    high   : 0,
+    close  : 0,
+    volume : 0
+}
+
+var tableData = [];
+
+var data1 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var data2 = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]];
+var data3 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var data4 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var data5 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var data6 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var data7 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var data8 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var chart1 = new TinyChart('chart1'); 
+    chart1.caption='Closing Time';
+    chart1.ticks=41;
+    chart1.colors.bar0='#B44';
+    chart1.colors.labels=isDark?'#A8B3CE':'#111';
+    chart1.draw(data1);
+
+var chart2 = new TinyChart('chart2');
+    chart2.caption='Transactions & Operations';
+    chart2.ticks=21;
+    //chart2.colors.bar0='#399';
+    //chart2.colors.bar1='#369';
+    chart2.colors.labels=isDark?'#A8B3CE':'#111';
+    chart2.draw(data2);
+
+var chart3 = new TinyChart('chart3'); 
+    chart3.caption='Fees in Stroops';
+    chart3.ticks=41;
+    chart3.colors.bar0='#939';
+    chart3.colors.labels=isDark?'#A8B3CE':'#111';
+    chart3.draw(data3);
+
+var chart4 = new TinyChart('chart4'); 
+    chart4.caption='Money Volume';
+    chart4.ticks=41;
+    chart4.colors.bar0='#4A2';
+    chart4.colors.labels=isDark?'#A8B3CE':'#111';
+    chart4.draw(data4);
+
+var chart5 = new TinyChart('chart5'); 
+    chart5.caption='New Accounts';
+    chart5.ticks=41;
+    //chart5.colors.bar0='#864';
+    chart5.colors.labels=isDark?'#A8B3CE':'#111';
+    chart5.draw(data3);
+
+var chart6 = new TinyChart('chart6'); 
+    chart6.caption='Payments';
+    chart6.ticks=41;
+    chart6.colors.bar0='#684';
+    chart6.colors.labels=isDark?'#A8B3CE':'#111';
+    chart6.draw(data3);
+
+var chart7 = new TinyChart('chart7'); 
+    chart7.caption='Offers';
+    chart7.ticks=41;
+    chart7.colors.bar0='#648';
+    chart7.colors.labels=isDark?'#A8B3CE':'#111';
+    chart7.draw(data3);
+
+var chart8 = new TinyChart('chart8'); 
+    chart8.caption='Options';
+    chart8.ticks=41;
+    chart8.colors.bar0='#846';
+    chart8.colors.labels=isDark?'#A8B3CE':'#111';
+    chart8.draw(data3);
+
+// Testing
+function tick() {
+	  var lapse  = random(1,10);
+	  var txs    = 1+random(100);
+	  var ops    = txs+random(100);
+	  var fees   = random(10000);
+    var vol    = random(100000);
+    var accts  = random(100);
+    var pays   = random(200);
+    var trades = random(1000);
+	  var opts   = random(40);
+
+    showData(lapse, txs, ops, fees, vol, accts, pays, trades, opts);
+}
+
+function showData(lapse, txs, ops, fees, vol, accts, pays, trades, opts) {
+	data1.shift();
+	data1.push(lapse);
+    chart1.value = lapse;
+
+    data2.shift();
+    data2.push([txs,ops]);
+    chart2.value = txs+'/'+ops;
+
+    data3.shift();
+    data3.push(fees);
+    chart3.value = fees;
+
+    data4.shift();
+    data4.push(vol);
+    chart4.value = vol;
+
+    data5.shift();
+    data5.push(accts);
+    chart5.value = accts;
+
+    data6.shift();
+    data6.push(pays);
+    chart6.value = pays;
+
+    data7.shift();
+    data7.push(trades);
+    chart7.value = trades;
+
+    data8.shift();
+    data8.push(opts);
+    chart8.value = opts;
+
+    pulsar(lapse);
+
+    if(!isFrozen){
+        chart1.draw(data1);
+        chart2.draw(data2);
+        chart3.draw(data3);
+        chart4.draw(data4);
+        chart5.draw(data5);
+        chart6.draw(data6);
+        chart7.draw(data7);
+        chart8.draw(data8);
+    }
+}
+
+function addTableRow(seq, txs, ops, fees, vol, accts, pays, trades, opts) {
+    if(tableData.length>19) { tableData.pop(); }
+    tableData.unshift([seq, txs, ops, fees, vol, accts, pays, trades, opts]);
+
+    var table = $('ledgers');
+    var html = '';
+
+    for(var index in tableData){
+        var item = tableData[index];
+        html += '<tr><td>'+item[0]+'</td><td>'+item[1]+'</td><td>'+item[2]+'</td><td>'+item[4]+'</td><td>'+item[5]+'</td><td>'+item[6]+'</td><td>'+item[7]+'</td><td>'+item[8]+'</td></tr>';
+    }
+
+    table.tBodies[0].innerHTML = html;
+}
+
+function streamLedger() {
+    if(network=='live') {
+        server = new StellarSdk.Server('https://horizon.stellar.org');
+    } else {
+        server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+    }
+
+    //console.log('Streaming ledgers...');
+    channel = server.ledgers().cursor('now').stream({
+        onmessage: function(ledger) {
+            //console.log(ledger);
+            var time = now();
+            var secs = parseInt((time - lapse) / 1000);
+            //console.log(secs);
+            lapse = time;
+
+            $('version').innerHTML = ledger.protocol_version;
+            $('basefee').innerHTML = ledger.base_fee_in_stroops+' STR';
+            $('reserve').innerHTML = (ledger.base_reserve_in_stroops/10000000)+' XLM';
+            $('coins').innerHTML   = money(ledger.total_coins / 1000000000, 3)+' B';
+            $('pool').innerHTML    = money(ledger.fee_pool, 0);
+            $('maxtx').innerHTML   = ledger.max_tx_set_size;
+            $('seq').innerHTML     = ledger.sequence;
+
+            var txs  = ledger.successful_transaction_count;
+            var fail = ledger.failed_transaction_count;
+            var ops  = ledger.operation_count;
+            var fees = ops * ledger.base_fee_in_stroops;
+
+            // add to table
+            ledger.operations().then(function(list){
+                var recs   = list._embedded.records;
+                //console.log(recs);
+                var vol    = 0;
+                var accts  = 0;
+                var pays   = 0;
+                var trades = 0;
+                var opts   = 0;
+
+                for (var i = 0; i < recs.length; i++) {
+                    var op = recs[i];
+                    switch(op.type_i){
+                        case 0: accts+=1; break;
+                        case 1: // pays
+                        case 2: pays+=1; vol += op.amount; break;
+                        case 3: // trades
+                        case 4: trades+=1; break;
+                        default:  opts+=1; break;
+                    }
+                }
+
+                var mvol = parseInt(vol);
+                // charts
+                showData(secs, txs, ops, fees, mvol, accts, pays, trades, opts);
+                addTableRow(ledger.sequence, txs, ops, fees, mvol, accts, pays, trades, opts);
+            }).catch(function(error) {
+                //error.target.close(); // Close stream
+                console.error('Streaming Error: ', error);
+            });
+        },
+        onerror: function(error) {
+            //error.target.close(); // Close stream
+            console.error('Streaming Error: ', error);
+        }
+    });
+}
+
+function streamPrice() {
+    //console.log('Start streaming...');
+    //var url = 'https://api.binance.com/api/v3/ticker/price?symbol=XLMBTC';
+    //var url = 'wss://stream.binance.com:9443/ws/xlmbtc@ticker';
+    var url = 'wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/xlmbtc@ticker';
+
+    socket = new WebSocket(url);
+    //console.log('Connecting...');
+
+    socket.onerror =  function(error) {
+        console.log('On Error!');
+        console.log(error);
+    };
+
+    socket.onopen = function() {
+        //console.log('On Open: Connection open');
+    };
+
+    socket.onclose = function() {
+        //console.log("On Close: Connection lost");
+    };
+
+    socket.onmessage = function(event) {
+        //console.log(event);
+        if (event.data.length < 2) { return; }
+        var payload = JSON.parse(event.data);
+        //console.log(payload.stream);
+        //console.log(payload.data);
+        var oldPrice = ticker.close;
+        if(payload.stream=='btcusdt@ticker') {
+            btcusd = payload.data['c'];
+            //console.log(btcusd);
+        } else {
+            ticker = {
+                open  : parseFloat(payload.data['o']),
+                low   : parseFloat(payload.data['l']),
+                high  : parseFloat(payload.data['h']),
+                close : parseFloat(payload.data['c']),
+                volume: parseInt(payload.data['v'])
+            };
+            //console.log(ticker.close);
+        }
+        var quote  = market=='xlmusd' ? btcusd : 1;
+        var open   = parseFloat(ticker.open  * quote);
+        var low    = parseFloat(ticker.low   * quote);
+        var high   = parseFloat(ticker.high  * quote);
+        var close  = parseFloat(ticker.close * quote);
+        var volume = parseInt(ticker.volume);
+        var change = close / ticker.old;
+        ticker.old = close;
+
+        $('price-open').innerHTML  = money(open);
+        $('price-low').innerHTML   = money(low);
+        $('price-high').innerHTML  = money(high);
+        $('price-close').innerHTML = money(close);
+        $('volume').innerHTML      = money(volume, 0);
+
+        // Up, down, none
+        if(change>1.0)      { $('price-close').setAttribute('class', 'label-value go-up'); }
+        else if(change<1.0) { $('price-close').setAttribute('class', 'label-value go-dn'); }
+        //else { goClass = 'go-no'; }
+    };
+}
+
+
+function pulsar(n) {
+    svgPulse({
+        id    : 'pulse',
+        parent: 'pulsar',
+        width : 80,
+        height: 80,
+        color : '#369',
+        time  : 1,
+        text  : n
+     });
+}
+
+function random(n, m) { 
+    if(!m){ m=n; n=0; } 
+    var q = m-n;
+    return n + parseInt(Math.random(q) * q);
+}
+
+function onStop() {
+    if(isRunning){
+        //clearInterval(timer);
+        //timer = null;
+        if(channel){ channel(); }
+        if(socket) { socket.close(); }
+        isRunning = false;
+    } else { 
+        //timer = setInterval(tick, 2000);
+        isRunning = true;
+        streamLedger();
+        streamPrice();
+    }
+    $('stopper').innerHTML = isRunning ? '||' : '&#x25BA;';
+}
+
+function onFreeze() {
+    isFrozen = !isFrozen;
+    $('freezer').innerHTML = isFrozen ? 'Unfreeze' : 'Freeze';
+}
+
+function onZoom(n) {
+    var zoom = isZoomed ? 100 : window.innerWidth / 1190 * 100;
+    document.body.style.zoom = zoom+'%';
+    isZoomed = !isZoomed;
+}
+
+function money(text, dec=8, comma=true, dimdec=false, blankZero=false) {
+    if(text==''){ return blankZero?'':(0).toFixed(dec); }
+    var num = 0;
+    if(comma){
+        num = parseFloat(text).toLocaleString("en", {minimumFractionDigits: dec, maximumFractionDigits: dec});
+    } else {
+        num = parseFloat(text).toFixed(dec);
+    }
+    if(dimdec && dec>0){
+        var parts = num.split('.');
+        num = parts[0] + '<dec>.' + parts[1]+ '</dec>';
+    }
+    return num;
+}
+
+function select(quote) {
+    if(quote=='btc'){ 
+        $('quote-usd').removeAttribute('selected'); 
+        $('quote-btc').setAttribute('selected'); 
+        market = 'xlmbtc';
+    } else {
+        $('quote-btc').removeAttribute('selected'); 
+        $('quote-usd').setAttribute('selected'); 
+        market = 'xlmusd';
+    }
+}
+
+function $(id) { return document.getElementById(id); }
+
+function now() { return (new Date()).getTime(); }
+
+function main() {
+	  //timer = setInterval(tick, 2000);
+	  pulsar();
+    streamLedger();
+    streamPrice();
+}
+
+window.onload = main;
+
+/*
+
+- show array total in chart to the left
+- timer to ping binance every 30 mins
+
+*/
+</script>
+</body>
+</html>

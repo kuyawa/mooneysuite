@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mooney Ticker</title>
+<style>
+
+html, body { margin: 0; padding: 0; font: normal 1em/1.4 sans-serif; color: #1A262C; background-color: #E4EAEE; }
+wrap { display: block; overflow: hidden; width: 1240px; margin: 0 auto; padding: 0 20px; }
+a { text-decoration: none; color: #69C; }
+a[nohref] { cursor: pointer; }
+a:hover { text-decoration: underline; color: #9CF; }
+li { list-style-type: none; }
+.sep { display: inline-block; width: 20px; }
+
+header { margin: 0; padding: 4px 0; }
+header wrap { text-align: right; }
+header li { display: inline-block; padding: 4px 10px; }
+
+content { display: block; margin-top: 10px; }
+
+footer { margin: 0; padding: 10px 0; text-align: right; }
+footer h1, footer h2 { display: inline-block; margin: 0; padding: 0; }
+footer h1 { font-size: 1.2em; font-weight: 600; margin: 0 10px 0 20px; }
+footer h2 { font-size: 1.0em; font-weight: 300; color: #A8B3CE; }
+
+
+/* ALL COINS */
+#all-coins-wrap  { display: block; width: 1220px; min-height: 200px; margin: 0 0 2px; padding: 10px; }
+#all-coins-head  { border-bottom: 1px solid #2D3E46; }
+#all-coins-title { display: block; margin: 0 0 10px 6px; padding: 0; font-size: 2em; font-weight: 200; }
+#all-coins { width: 100%; margin: 4px 0; border-collapse: collapse; }
+#all-coins tr:nth-child(even) { background-color: #D0D6DA; color: #162228; border: 1px solid #DADADE; }
+#all-coins th { padding: 4px 8px; font-size: 0.8em; font-weight: 400; font-variant: small-caps; color: #18233E; border-bottom: 1px solid #2C383E; cursor: pointer; }
+#all-coins td { padding: 4px 8px; font-size: 0.9em; }
+
+#all-coins th:nth-child(1)  { text-align: center; }
+#all-coins th:nth-child(2)  { text-align: left;  }
+#all-coins th:nth-child(3)  { text-align: right; }
+#all-coins th:nth-child(4)  { text-align: right; }
+#all-coins th:nth-child(5)  { text-align: right; }
+#all-coins th:nth-child(6)  { text-align: right; }
+#all-coins th:nth-child(7)  { text-align: right; }
+#all-coins th:nth-child(8)  { text-align: right; }
+#all-coins th:nth-child(9)  { text-align: right; padding-right: 22px; }
+#all-coins th:nth-child(10) { text-align: right; }
+
+#all-coins td:nth-child(1)  { text-align: center; }
+#all-coins td:nth-child(2)  { text-align: left;  }
+#all-coins td:nth-child(3)  { text-align: right; }
+#all-coins td:nth-child(4)  { text-align: right; }
+#all-coins td:nth-child(5)  { text-align: right; }
+#all-coins td:nth-child(6)  { text-align: right; }
+#all-coins td:nth-child(7)  { text-align: right; }
+#all-coins td:nth-child(8)  { text-align: right; }
+#all-coins td:nth-child(9)  { text-align: right; }
+#all-coins td:nth-child(10) { text-align: right; }
+
+#all-coins tr.select td { background-color: #0A161C; color: #E0E6EA; }
+/*#all-coins tr:hover  td { background-color: #293941; cursor: pointer; }*/
+#all-coins tfoot td { border-top: 1px solid #2C383E; }
+
+dec { color: #678; }
+
+.go-up { color: #482; }
+.go-dn { color: #A55F6B; }
+.go-no { color: #1A262C; }
+.price-up { color: #482;  /*#6E914F*/ }
+.price-dn { color: #A55F6B; }
+.price-no { color: #1A262C; }
+.price-up:after { content: "\25B2"; color: #448822; display: inline-block; width: 1em; margin-left: 4px; font-size: 0.8em; }
+.price-dn:after { content: "\25BC"; color: #A55F6B; display: inline-block; width: 1em; margin-left: 4px; font-size: 0.8em; }
+.price-no:after { content: "\25BA"; color: #A8B3CE; display: inline-block; width: 1em; margin-left: 4px; font-size: 0.8em; }
+
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    html, body { color: #E0E6EA; background-color: #1C2024; }
+	#all-coins th { color: #A8B3CE; border-bottom: 1px solid #2C383E; }
+    #all-coins tr:nth-child(even) { color: #E0E6EA; background-color: #161A1E; border: 1px solid #101418; }
+	.go-no { color: #A8B3CE; }
+	.price-no { color: #A8B3CE; }
+	.price-no:after { color: #A8B3CE; }
+}
+
+</style>
+</head>
+<body>
+
+<header>
+	<wrap>
+		<li>BTC: <span id="btc-price">0.00</span></li>
+		<li>XLM: <span id="xlm-price">0.00</span></li>
+	</wrap>
+</header>
+
+<content>
+	<wrap>
+		<div id="all-coins-wrap">
+			<div id="all-coins-head"><h1 id="all-coins-title">Mooney Markets</h1></div>
+			<table id="all-coins">
+				<colgroup>
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+			       <col span="1">
+    			</colgroup>
+				<thead>
+					<tr> 
+						<th onclick="sortTable(event, 0,1)">Rank</th> 
+						<th onclick="sortTable(event, 1,0)">Symbol</th> 
+						<th onclick="sortTable(event, 2,2)">Base Vol</th> 
+						<th onclick="sortTable(event, 3,2)">Counter Vol</th> 
+						<th onclick="sortTable(event, 4,2)">Trades</th> 
+						<th onclick="sortTable(event, 5,2)">Open</th> 
+						<th onclick="sortTable(event, 6,2)">Low</th> 
+						<th onclick="sortTable(event, 7,2)">High</th> 
+						<th onclick="sortTable(event, 8,2)">Price</th> 
+						<th onclick="sortTable(event, 9,2)">Change</th> 
+					</tr>
+				</thead>
+				<tbody>
+					<tr id="BTC"> <td>1</td> <td>BTC</td> <td>0.0</td> <td>0.0</td> <td>0</td> <td>0.00000000</td> <td>0.00000000</td> <td>0.00000000</td> <td class="price-no">0.0000</td> <td class="go-no">0.00%</td> </tr>
+				</tbody>
+				<tfoot><tr>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+				</tr></tfoot>
+			</table>
+		</div>
+	</wrap>
+</content>
+
+<footer>
+	<wrap>
+		<h2>&copy;2019</h2> <h1>Mooney Suite</h1>
+	</wrap>
+</footer>
+
+<script>
+
+main();
+
+function main() {
+    console.log('Main...');
+    loadTicker();
+    loadPrices();
+}
+
+function loadPrices() {
+    console.log('Loading prices...');
+    //var url = './ticker-prices.json';
+	var url = 'https://api.bitfinex.com/v2/tickers?symbols=tBTCUSD,tXLMUSD';
+    webGet(url, info => {
+        console.log('Prices', info);
+        showPrices(info);
+    });
+}
+
+function showPrices(info) {
+	var btc = money(info[0][7],2,true);
+	var btcChange = parseFloat(info[0][6]) || 0.0;
+	var xlm = money(info[1][7],6,true);
+	var xlmChange = parseFloat(info[1][6]) || 0.0;
+	$('btc-price').innerHTML = btc;
+	$('xlm-price').innerHTML = xlm;
+	$('btc-price').className = (btcChange > 0 ? 'price-up' : (btcChange < 0 ? 'price-dn' : 'price-no'));
+	$('xlm-price').className = (xlmChange > 0 ? 'price-up' : (xlmChange < 0 ? 'price-dn' : 'price-no'));
+}
+
+function loadTicker() {
+    console.log('Loading ticker...');
+    //var url = './ticker-test.json';
+    var url = 'https://ticker.stellar.org';
+    webGet(url, info => {
+        console.log('Ticker', info);
+        buildTable(info);
+    });
+}
+
+function buildTable(ticker) {
+    var table  = $('all-coins');
+    var html   = '';
+    var row    = '<tr id="{coin}"> <td>{rank}</td> <td>{symbol}</td> <td>{basVol}</td> <td>{ctrVol}</td> <td>{trades}</td> <td>{open}</td> <td>{low}</td> <td>{high}</td> <td class="{classPrice}">{price}</td> <td class="{classChange}">{change}%</td> </tr>';
+    var empty  = '<tr> <td colspan="10">&nbsp;</td> </tr>';
+    var pairs  = ticker.pairs;
+    var change = 'go-no';
+    var n = 0;
+
+    for(var key in pairs) {
+        item = pairs[key];
+        n++;
+
+		var symbol = item['name'];
+		var basVol = item['base_volume'];
+		var ctrVol = item['counter_volume'];
+		var trades = item['trade_count'];
+		var open   = item['open'];
+		var low    = item['low'];
+		var high   = item['high'];
+        var price  = parseFloat(item['price'])  || 0.0;
+        var change = parseFloat(item['change']) || 0.0;
+        var trend  = (change==0 ? "no" : change>0 ? "up" : "dn");
+
+        html += row.replace('{coin}'       , key)
+                   .replace('{rank}'       , n)
+                   .replace('{symbol}'     , symbol)
+                   .replace('{basVol}'     , money(basVol, 2, true))
+                   .replace('{ctrVol}'     , money(ctrVol, 2, true))
+                   .replace('{trades}'     , trades)
+                   .replace('{open}'       , money(open,   6, true))
+                   .replace('{low}'        , money(low,    6, true))
+                   .replace('{high}'       , money(high,   6, true))
+                   .replace('{price}'      , money(price,  6, true))
+                   .replace('{classPrice}' , 'price-'+trend)
+                   .replace('{classChange}', 'go-'+trend)
+                   .replace('{change}'     , money(change, 4, true));
+    }
+
+    for(var m=n; m<25; m++){
+        html += empty;  // Fill with blank rows
+    }
+
+    table.tBodies[0].innerHTML = html;
+}
+
+function sortTable(event, col, type) {
+	// Ordering types are 0.str 1.int 2.dbl 3.date
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    //table = $("all-coins");
+    // Table must be defined as table.thead.tr.th where target is th
+    table = event.target.parentNode.parentNode.parentNode;
+    switching = true;
+    dir = "asc";  // Set the sorting direction to ascending:
+    
+    /* Make a loop that will continue until no switching has been done: */
+  	while (switching) {
+    	// Start by saying: no switching is done:
+    	switching = false;
+    	rows = table.tBodies[0].getElementsByTagName("TR");
+    	// Loop through all table rows in the TBODY section:
+    	for (i = 0; i < (rows.length - 1); i++) {
+			shouldSwitch = false;
+			
+			// Get the two elements you want to compare, one from current row and one from the next:
+			x = rows[i].getElementsByTagName("TD")[col];
+			y = rows[i + 1].getElementsByTagName("TD")[col];
+			
+			// Check if the two rows should switch place, based on the direction, asc or desc:
+			// I prefer strings to start ASC but numbers DESC
+			if (dir == "asc") {
+				if(type==0){ if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) { shouldSwitch = true; break; } }
+				if(type==1){ if (parseInt(stripCommas(x.innerHTML))   < parseInt(stripCommas(y.innerHTML)))   { shouldSwitch = true; break; } }
+				if(type==2){ if (parseFloat(stripCommas(x.innerHTML)) < parseFloat(stripCommas(y.innerHTML))) { shouldSwitch = true; break; } }
+				//if(type==3){ if (Date(x.innerHTML) > Date(y.innerHTML)) { shouldSwitch= true; break; } }
+			} else if (dir == "desc") {
+				if(type==0){ if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) { shouldSwitch = true; break; } }
+				if(type==1){ if (parseInt(stripCommas(x.innerHTML))   > parseInt(stripCommas(y.innerHTML)))   { shouldSwitch = true; break; } }
+				if(type==2){ if (parseFloat(stripCommas(x.innerHTML)) > parseFloat(stripCommas(y.innerHTML))) { shouldSwitch = true; break; } }
+				//if(type==3){ if (Date(x.innerHTML) < Date(y.innerHTML)) { shouldSwitch= true; break; } }
+			}
+	    }
+
+	    if (shouldSwitch) {
+	      	// If a switch has been marked, make the switch and mark that a switch has been done:
+	      	rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+	      	switching = true;
+	      	// Each time a switch is done, increase this count by 1:
+	      	switchcount ++; 
+	    } else {
+	      	// If no switching has been done AND the direction is "asc", set the direction to "desc" and run the while loop again.
+	      	if (switchcount == 0 && dir == "asc") {
+	        	dir = "desc";
+	        	switching = true;
+	      	}
+	    }
+  	}
+}
+
+
+// Utils
+
+function $(id) { return document.getElementById(id); }
+
+function stripCommas(value) {
+    return value.replace(/\,/g,'');
+}
+
+function money(text, dec=4, comma=true, dimdec=false, blankZero=false) {
+	if(text==''){ return blankZero?'':(0).toFixed(dec); }
+	var num = 0;
+	if(comma){
+		num = parseFloat(text).toLocaleString("en", {minimumFractionDigits: dec, maximumFractionDigits: dec});
+	} else {
+		num = parseFloat(text).toFixed(dec);
+	}
+	if(dimdec && dec>0){
+		var parts = num.split('.');
+		num = parts[0] + '<dec>.' + parts[1]+ '</dec>';
+	}
+	return num;
+}
+
+function webGet(url, callback, extra) {
+    var http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.onreadystatechange = function() { 
+        if(http.readyState==4) { 
+            try { var json = JSON.parse(http.responseText); } 
+            catch(ex) { 
+                console.log("JSON ERROR", ex.message); 
+                console.log('RESPONSE', http.responseText); 
+                json = { error: true, message: ex.message };
+            }
+            callback(json, extra);
+        } 
+    };
+    http.send();
+}
+
+</script>
+
+</body>
+</html>

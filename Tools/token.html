@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mooney Tokens</title>
+<style>
+
+html, body { margin: 0; padding: 0; font: normal 1em/1.4 'Helvetica Neue', sans-serif; color: #1A262C; background-color: #E4EAEE; }
+section { width: 500px; margin: 0 auto; text-align: center; }
+h1   { font-weight: 100; font-size: 2em; border-bottom: 1px solid #A8B3CE; text-align: left; }
+h1 b { font-weight: 500; }
+h2 { font-size: 1.6em; margin: 0 0 20px 0; padding: 2px; }
+li { list-style-type: none; }
+a { text-decoration: none; color: #A8B3CE; }
+a:hover { color: #D8E3FE; }
+label { display: inline-block; width: 120px; }
+input[type=textbox] { display: block; margin: 0 auto; margin-bottom: 10px; padding: 4px 8px; text-align: center; }
+
+header { width: 900px; margin: 0 auto; text-align: center; }
+header h1 { margin: 30px 0 10px; }
+#horizon { float: right; margin: 10px 0 0 0; }
+#main { width: 820px; margin: 0 auto; padding: 20px; border: 1px solid #BBB; border-radius: 4px; background-color: #D4DADE; }
+
+
+.entry  { margin: 10px; padding: 2px; background-color: #DDD; border: 1px solid #CCC; border-radius: 3px; font-size: 1em; text-align: center; }
+.warn   { color: #CC0; margin: 0px 0; font-size: 0.8em; }
+#status { color: #A8B3CE; font-size: 0.8em; }
+
+button { padding: 4px 8px; border-radius: 4px; border: 1px solid #147; background-color: #394951; color: #CDE; font-variant: small-caps; }
+button:hover  { background-color: #47A; color: #FFF; cursor: pointer; }
+button:active { background-color: #258; color: #CDE; }
+button[disabled] { color: #DEF; background-color: #369; }
+
+.sep   { margin-bottom: 20px; }
+.right { text-align: right; }
+.test  { color: #A00; }
+.live  { color: #0A0; }
+
+.boxed { padding: 20px 0; text-align: center; border: 1px solid #CCC; border-radius: 4px; background-color: #DDD; }
+
+.btn-net  { width: 100px; }
+#btn-gen  { width: 100px; background-color: #800; border: 1px solid #400; }
+#btn-gen:hover   { background-color: #900; color: #FFF; }
+#btn-gen:active  { background-color: #700; color: #DDD; }
+
+footer  { width: 500px; margin: 0 auto 20px; text-align: center; font-size: 0.8em; color: #A8B3CE; }
+
+/* CUSTOM */
+
+#main { padding: 40px 40px; }
+li { margin: 4px 0; }
+label { font-variant: small-caps; }
+input[type=text] { margin: 0; padding: 4px; background-color: #EEE; border: 1px solid #CCC; border-radius: 3px; font-size: 1em; text-align: left; font-family: monospace; }
+#btn-gen { margin-left: 10px; }
+#issuer, #anchor { width: 500px; }
+.btn-check { margin-right: 10px; padding: 4px 20px; color: #A8B3CE; font-variant: small-caps; border: 1px solid #394951; border-radius: 4px; }
+.btn-check.on { background-color: #258; color: #CDE; }
+input[type=checkbox] {  }
+#log { overflow: scroll; margin-top: 40px; padding: 10px; font-family: monospace; height: 200px; background-color: #EEE; border: 1px solid #CCC; border-radius: 4px; }
+
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    html, body { color: #E0E6EA; background-color: #1C2024; }
+    #main { border: 1px solid #091921; background-color: #161A1E; }
+    label { color: #A8B3CE; }
+    input[type=text] { color: #D8E3FE; background-color: #394951; border: 1px solid #091921; }
+    #log { background-color: #1D2A2F; border: 1px solid #394951; }
+}
+
+</style>
+</head>
+<body>
+
+<header>
+    <li id="horizon">
+        <button id="btn-live" class="btn-net" onclick="goLive()">Live</button>
+        <button id="btn-test" class="btn-net" onclick="goTest()">Test</button>
+    </li>
+    <h1><b>Mooney</b> Asset Generation <span id="net">Test</span></h1>
+</header>
+
+<div id="main">
+
+    <li><label>Asset Code:    </label> <input type="text" id="token"  value="TEST"> <button id="btn-gen" onclick="createAsset()">Create Asset</button></li>
+    <li><label>Initial Supply:</label> <input type="text" id="supply" value="1000000"></li>
+    <li><label>Issuer Secret: </label> <input type="text" id="issuer" value="SA2345ISS..."> <button id="issuer-link" onclick="explore(0)">Explore</button></li>
+    <li><label>Anchor Secret: </label> <input type="text" id="anchor" value="SA7654ANC..."> <button id="anchor-link" onclick="explore(1)">Explore</button></li>
+    <li><label>Options:</label> 
+        <button id="chk-lck" class="btn-check" onclick="checkOption(0)">Lock Account</button> 
+        <button id="chk-req" class="btn-check" onclick="checkOption(1)">Authorization Required</button> 
+        <button id="chk-rev" class="btn-check" onclick="checkOption(2)">Authorization Revocable</button>
+    </li>
+    <p id="log"></p>
+</div>
+
+<script src="stellar.js"></script>
+
+<script>
+
+var isLive = false;
+
+function createAsset(token) {
+    var network = (isLive ? 2 : 1);     // 1.TEST 2.LIVE
+    var code    = $('token').value;
+    var supply  = $('supply').value;
+    var issuer  = $('issuer').value;
+    var anchor  = $('anchor').value;
+    var optLock = $('chk-lck').classList.contains('on');
+    var optReq  = $('chk-req').classList.contains('on');
+    var optRev  = $('chk-rev').classList.contains('on');
+
+    var token = {
+        networkType  : network,
+        assetCode    : code,
+        supply       : supply,
+        issuerSecret : issuer,
+        distSecret   : anchor,
+        lockAccount  : optLock,    // True for no more tokens
+        requireAuth  : optReq,     // True for buddies only
+        revokeAuth   : optRev      // True to stop hackers
+    };
+
+    //console.log(pretty(token));  // Pretty
+    log(supply+' tokens will be generated');
+    log('Generating asset '+code+', please wait...');
+
+    var server      = null;
+    var StellarLIVE = "https://horizon.stellar.org";
+    var StellarTEST = "https://horizon-testnet.stellar.org";
+    var issuerAcct  = StellarSdk.Keypair.fromSecret(token.issuerSecret);
+    var distAcct    = StellarSdk.Keypair.fromSecret(token.distSecret);
+    var asset       = new StellarSdk.Asset(token.assetCode, issuerAcct.publicKey());
+    var amount      = token.supply.toString();
+    var setFlags    = 0;
+
+    if (token.networkType == 2) {
+        StellarSdk.Network.usePublicNetwork();
+        server = new StellarSdk.Server(StellarLIVE);
+    } else {
+        StellarSdk.Network.useTestNetwork();
+        server = new StellarSdk.Server(StellarTEST);
+    }
+
+    // Issuer and distributing accounts must exist
+    log("Loading issuer account...");
+    server.loadAccount(issuerAcct.publicKey()).then(function(issuer) {
+        log("Loading distributor account...");
+        return server.loadAccount(distAcct.publicKey());
+    }).then(function(base) {
+        log("Starting transaction...");
+
+        var tx = new StellarSdk.TransactionBuilder(base);
+        var op = {};
+
+        if (token.requireAuth) {
+            log("Option: AuthRequired");
+            setFlags += StellarSdk.AuthRequiredFlag;
+        }
+
+        if (token.revokeAuth) {
+            log("Option: AuthRevocable");
+            setFlags += StellarSdk.AuthRevocableFlag;
+        }
+        
+        // set flag options
+        if (setFlags > 0) {
+            log("SetFlags: " + setFlags);
+            op.setFlags = setFlags;
+            op.source   = issuerAcct.publicKey();
+            tx.addOperation(StellarSdk.Operation.setOptions(op));
+        }
+
+        // change trust
+        log("Changing Trust...");
+        op = {};
+        op.asset  = asset;
+        op.source = distAcct.publicKey();
+        tx.addOperation(StellarSdk.Operation.changeTrust(op));
+
+        // allow trust
+        if (setFlags > 0) {
+            log("Allowing Trust...");
+            op = {};
+            op.trustor   = distAcct.publicKey();
+            op.assetCode = token.assetCode;
+            op.authorize = true;
+            op.source    = issuerAcct.publicKey();
+            tx.addOperation(StellarSdk.Operation.allowTrust(op));
+        }
+
+        // send asset to dist
+        log("Sending tokens to distributor...");
+        op = {};
+        op.destination = distAcct.publicKey();
+        op.asset       = asset;
+        op.amount      = amount;
+        op.source      = issuerAcct.publicKey();
+        tx.addOperation(StellarSdk.Operation.payment(op));
+
+        // lock issuer account to limit supply
+        if (token.lockAccount) {
+            log("Locking account...");
+            op = {};
+            op.masterWeight  = 1; // 0
+            op.lowThreshold  = 1;
+            op.medThreshold  = 2;
+            op.highThreshold = 3;
+            op.source = issuerAcct.publicKey();
+            tx.addOperation(StellarSdk.Operation.setOptions(op));
+        }
+
+        // build and sign transaction
+        log("Building and signing transaction...");
+        var builtTx = tx.build();
+        builtTx.sign(StellarSdk.Keypair.fromSecret(issuerAcct.secret()));
+        builtTx.sign(StellarSdk.Keypair.fromSecret(distAcct.secret()));
+
+        //send build tx to server
+        log("Submitting transaction...");
+        return server.submitTransaction(builtTx);
+
+    }).then(function(result) {
+        log('Success!');
+        //log('Results: ' + pretty(result));
+        log('Asset '   + token.assetCode + ' created successfully');
+        log('Issuer: ' + issuerAcct.publicKey());
+        log('Anchor: ' + distAcct.publicKey());
+    }).catch(function(error) {
+        log("Error!");
+        log(pretty(error));
+        console.log(error);
+    });
+}
+
+
+function goLive() {
+    isLive = true;
+    $('net').innerHTML     = 'Live';
+    $('net').style.color   = '#0C0';
+    $('btn-test').disabled = false;
+    $('btn-live').disabled = true;
+}
+
+function goTest() {
+    isLive = false;
+    $('net').innerHTML     = 'Test';
+    $('net').style.color   = '#C0F';
+    $('btn-test').disabled = true;
+    $('btn-live').disabled = false;
+}
+
+function checkOption(n) {
+    switch(n) {
+        case 0: toggleClass($('chk-lck'),'on'); break;
+        case 1: toggleClass($('chk-req'),'on'); break;
+        case 2: toggleClass($('chk-rev'),'on'); break;
+    }
+}
+
+function explore(n) {
+    var net = isLive ? 'live' : 'test';
+    var address = null;
+    var secret  = null;
+    switch(n) {
+        case 0: secret = $('issuer').value; break;
+        case 1: secret = $('anchor').value; break;
+    }
+    if(!secret){ return; }
+    try { address = StellarSdk.Keypair.fromSecret(secret).publicKey(); }
+    catch(ex) { alert('Invalid address'); return; }
+    if(!address){ return; }
+    var url = './ledger.html?net='+net+'&address='+address;
+    window.open(url);
+}
+
+//---- UTILS
+
+function $(id) { return document.getElementById(id); }
+function pretty(json) { return JSON.stringify(json, null, 4); }
+
+function log(text) {
+    console.log(text);
+    $('log').innerHTML += '<li>'+text+'</li>'
+}
+
+function toggleClass(element, className) {
+    if(element.classList) {
+        element.classList.toggle(className);
+    } else {
+        var classes = element.className.split(" "); // For IE9
+        var index = classes.indexOf(className);
+        if (index >= 0) { classes.splice(index, 1); }
+        else { classes.push(className); }
+        element.className = classes.join(" ");
+    }
+}
+
+
+log('Hello');
+goTest();
+
+</script>
+</body>
+</html>

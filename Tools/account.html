@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mooney Account</title>
+<style>
+
+html, body { margin: 0; padding: 0; color: #1A262C; background-color: #E4EAEE; font: normal 1em/1.4 'Helvetica Neue', sans-serif; }
+section { width: 500px; margin: 0 auto; text-align: center; }
+h1   { font-weight: 100; font-size: 2em; border-bottom: 1px solid #A8B3CE; text-align: left; }
+h1 b { font-weight: 500; }
+h2 { font-size: 1.6em; margin: 0 0 20px 0; padding: 2px; }
+li { list-style-type: none; }
+a { text-decoration: none; color: #A8B3CE; }
+a:hover { color: #D8E3FE; }
+label { display: block; }
+
+input[type=textbox] { display: block; margin: 0 auto; margin-bottom: 10px; padding: 4px 8px; text-align: center; }
+.entry  { margin: 10px; padding: 2px; border: 1px solid #CCC; border-radius: 3px; font-size: 1em; text-align: center; }
+.warn   { color: #C00; margin: 0px 0; font-size: 0.8em; }
+#status { font-size: 0.8em; }
+
+button { width: 100px; padding: 4px 8px; border-radius: 3px; border: 1px solid #147; background-color: #394951; color: #CDE; font-variant: small-caps; }
+button:hover  { background-color: #47A; color: #FFF; cursor: pointer; }
+button:active { background-color: #258; color: #CDE; }
+button[disabled] { color: #DEF; background-color: #369; }
+
+.sep   { margin-bottom: 20px; }
+.center { text-align: center; }
+.test  { color: #A00; }
+.live  { color: #0A0; }
+
+#new-address, #new-secret { display: block; width: 450px; margin: 0 auto 10px; padding: 4px 8px; font-family: monospace; }
+#address { width: 450px; font-family: monospace; }
+#secret  { width: 450px; font-family: monospace; }
+
+#txt-address { color: #A8B3CE; }
+#txt-secret  { color: #A8B3CE; }
+.boxed { padding: 20px 0; text-align: center; border: 1px solid #CCC; border-radius: 4px; background-color: #DDD; }
+
+#btn-gen  { margin-top: 10px; background-color: #800; border: 1px solid #400; }
+#btn-fund { margin-top: 10px; background-color: #080; border: 1px solid #040; }
+#btn-gen:hover   { background-color: #900; color: #FFF; }
+#btn-gen:active  { background-color: #700; color: #DDD; }
+#btn-fund:hover  { background-color: #090; color: #FFF; }
+#btn-fund:active { background-color: #070; color: #DDD; }
+#btn-fund[disabled] { background-color: #394951; color: #DDD; }
+
+/* FOOTER */
+footer  { width: 500px; margin: 0 auto 20px; text-align: center; font-size: 0.9em; }
+#note { margin: 20px 0; padding: 10px 0; font-size: 0.8em; border-top: 1px solid #A8B3CE; }
+
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    html, body { color: #E0E6EA; background-color: #1C2024; }
+    a { color: #A8B3CE; }
+    a:hover { color: #D8E3FE; }
+    .boxed { border: 1px solid #091921; background-color: #161A1E; }
+    .entry  { color: #D8E3FE; background-color: #394951; border: 1px solid #135; }
+    .warn   { color: #CC0; }
+    #status { color: #A8B3CE; }
+}
+
+</style>
+</head>
+<body>
+
+<section>
+    <h1 class="center"><b>Mooney</b> <span id="net">Test</span> Account</h1>
+
+    <li class="sep center">
+        <button id="btn-live" onclick="goLive()">Live</button>
+        <button id="btn-test" onclick="goTest()">Test</button>
+    </li>
+
+    <div class="boxed">
+        <input class="entry" type="textbox" id="new-address">
+        <input class="entry" type="textbox" id="new-secret">
+        <label class="warn">Save your public and secret keys in a safe place</label>
+    </div>
+    <li class="sep"><button id="btn-gen" onclick="newAccount()">Generate</button></li>
+
+    <div class="boxed">
+        <!-- <input class="entry" type="textbox" id="address" placeholder="Funding address"> -->
+        <input class="entry" type="textbox" id="secret" placeholder="Secret key">
+        <input class="entry" type="textbox" id="amount" value="25.00" placeholder="Amount to send">
+        <input class="entry" type="textbox" id="memo" placeholder="Memo">
+    </div>
+    <li><button id="btn-fund" onclick="fundMe()">Fund</button></li>
+    <li id="status">&nbsp;</li>
+</section>
+
+<footer>
+    <div id="note">
+        For security reasons, please turn internet access off while generating addresses<br>
+        If you don't understand the risks please refrain from using this tool<br>
+        We are not responsible for any loss. Use at your own risk
+    </div>
+</footer>
+
+<script src="stellar.js"></script>
+<script>
+
+var annoy      = true;
+var isLive     = false;
+var serverLIVE = 'https://horizon.stellar.org';
+var serverTEST = 'https://horizon-testnet.stellar.org';
+
+function goLive() {
+    isLive = true;
+    $('net').innerHTML       = 'Live';
+    $('btn-test').disabled   = false;
+    $('btn-live').disabled   = true;
+    // $('address').value       = '';
+    $('secret').value        = '';
+    $('amount').value        = '10.00';
+    $('memo').value          = '';
+    //$('address').placeholder = 'YOUR FUNDING ADDRESS';
+    $('secret').placeholder  = 'YOUR SECRET KEY';
+    $('amount').placeholder  = '';
+    $('memo').placeholder    = 'Memo';
+    // $('address').disabled    = false;
+    $('secret').disabled     = false;
+    $('amount').disabled     = false;
+    $('memo').disabled       = false;
+}
+
+function goTest() {
+    isLive = false;
+    $('net').innerHTML       = 'Test';
+    $('btn-test').disabled   = true;
+    $('btn-live').disabled   = false;
+    //$('address').value       = 'FUNDED BY FRIENDBOT';
+    $('secret').value        = 'FUNDED BY FRIENDBOT';
+    //$('secret').value        = 'SECRET33ROBOTSWILLRULETHEWORLD777HUMANITYISDOOMED765432X';
+    $('amount').value        = '10,000.00';
+    $('memo').value         = 'Hello human';
+    // $('address').placeholder = '';
+    $('secret').placeholder  = '';
+    $('amount').placeholder  = '';
+    $('memo').placeholder   = '';
+    // $('address').disabled    = true;
+    $('secret').disabled     = true;
+    $('amount').disabled     = true;
+    $('memo').disabled      = true;
+}
+
+function newAccount() {
+    var pair    = StellarSdk.Keypair.random();
+    var public  = pair.publicKey();
+    var secret  = pair.secret();
+
+    $('new-address').value = public;
+    $('new-secret').value  = secret;
+}
+
+function fundMe() {
+    if(isLive){
+        sendMoney();
+    } else {
+        fundTest();
+    }
+}
+
+function fundTest() {
+    disableFund();
+    clearStatus();
+    var address = $('new-address').value;
+    var url = serverTEST + '/friendbot?addr='+address;
+    showStatus('Funding address ' + address.substr(0,10)+'...');
+    console.log('Contacting '+url);
+    webget(url, function(json){
+        enableFund();
+        if(json.status==400) {
+            showStatus('Error funding account');
+            alert('Error funding account. Try again later');
+        } else {
+            showStatus('New account funded with 10,000 XLM');
+            alert('New account funded with 10,000 XLM');
+        }
+    });
+}
+
+function sendMoney() {
+    if(annoy && !confirm("You shouldn't trust your secret key to strangers\n"+
+                         "Haven't you learned anything?\n"+
+                         "If you still want to proceed click OK")){ return; }
+    else { annoy = false; }
+
+    disableFund();
+    clearStatus();
+
+    // from, to, amount, note
+    var secret  = $('secret').value;
+    var destin  = $('new-address').value;  // It's a label not an input
+    var amount  = $('amount').value;
+    var memo    = $('memo').value;
+    var funding = false;
+    var server  = null;
+
+    if (isLive) {
+        StellarSdk.Network.usePublicNetwork();
+        server = new StellarSdk.Server(serverLIVE);
+    } else {
+        StellarSdk.Network.useTestNetwork();
+        server = new StellarSdk.Server(serverTEST);
+    }
+
+    var mainAct = null;
+    try { mainAct = StellarSdk.Keypair.fromSecret(secret); }
+    catch(ex) {
+        showStatus('Invalid secret key. Try again.');
+        enableFund();
+        return;
+    }
+
+    showStatus('Loading destination account...');
+    
+    // Check to make sure that the destination account does not exist
+    // If it doesn't exist we will try to fund it else error out
+    server.loadAccount(destin).catch(StellarSdk.NotFoundError, function (error) {
+        showStatus('Account not found!');
+        funding = true;  // If the account is not found, fund it
+        return;
+    }).then(function(){ 
+        if(funding){
+            showStatus('Funding operation...');
+            var operation = StellarSdk.Operation.createAccount({
+                destination: destin,
+                startingBalance: ''+amount
+            });
+            showStatus('Loading source account...');
+            server.loadAccount(mainAct.publicKey()).then(function(sourceAccount) {
+                showStatus('Preparing transaction...');
+                //if(!memo){ memo = 'Hello'; }
+                var tx = new StellarSdk.TransactionBuilder(sourceAccount)
+                tx.addOperation(operation)
+                if(memo) { tx.addMemo(StellarSdk.Memo.text(memo)) }
+                var env = tx.build();
+                showStatus('Signing transaction...');
+                env.sign(mainAct);
+                showStatus('Sending money...');
+                return server.submitTransaction(env);
+            }).then(function(result) {
+                console.log('Success!', result);
+                showStatus('Success. Account funded!');
+                alert('Success. Account funded!');
+                $('btn-fund').disabled  = false;
+                $('btn-fund').innerHTML = 'FUND';
+            }).catch(function(error){
+                console.error('ERROR:', error);
+                showStatus('Error: Something went wrong!');
+                alert('Error: Something went wrong!');
+                enableFund();
+            });
+        } else {
+            showStatus('Error: Account already exists and can not be funded');
+            alert('Error: Account already exists and can not be funded');
+            enableFund();
+        }
+    }).catch(function(error) {
+        console.error('ERROR:', error);
+        showStatus('Error: Something went wrong!');
+        alert('Error: Something went wrong!');
+        enableFund();
+    });
+
+}
+
+function $(id) { return document.getElementById(id); }
+function clearStatus()    { $('status').innerHTML = '&nbsp;'; }
+function showStatus(text) { $('status').innerHTML = text; console.log(text); }
+
+function disableFund(text) {
+    $('btn-fund').disabled  = true;
+    $('btn-fund').innerHTML = text||'Wait';
+}
+
+function enableFund() {
+    $('btn-fund').disabled  = false;
+    $('btn-fund').innerHTML = 'Fund';
+}
+
+function webget(url, callback) {
+    var http = new XMLHttpRequest();
+    http.open("GET", url, true);
+    http.onreadystatechange = function() { 
+        if(http.readyState==4) { 
+            console.log('Response: '+http.responseText);
+            var json = null; 
+            try { 
+                json = JSON.parse(http.responseText); 
+            } catch(ex) { 
+                console.log("JSON ERROR", ex.message); 
+                alert('Internet connection error. Try later');
+                json = { error: true, message: ex.message };
+            }
+            callback(json);
+        } 
+    };
+    http.send();
+}
+
+
+//---- MAIN
+
+function main() {
+    goTest();
+    newAccount();
+}
+
+window.onload = main;
+
+</script>
+</body>
+</html>

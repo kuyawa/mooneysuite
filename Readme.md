@@ -20,8 +20,8 @@ Starting with address creation we provide vanity generators to help you choose w
 
 ### Links:
 
-Mooney Suite [https://mooney.cash]
-Github Repo [https://github.com/kuyawa/mooneysuite]
+- (Mooney Suite)[https://mooney.cash]
+- [Github Repo](https://github.com/kuyawa/mooneysuite)
 
 ### Screenshots
 
